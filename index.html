@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BTM - Dashboard Multi-sites</title>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --btm-navy: #072a6c;
+      --btm-blue: #0a4db3;
+      --btm-light-blue: #3e86ff;
+      --btm-cyan: #18b8ff;
+      --btm-bg: #f4f7fc;
+      --btm-card: #ffffff;
+      --btm-border: #dbe5f4;
+      --btm-text: #183153;
+      --btm-muted: #6d7c93;
+      --btm-success: #2cc66d;
+      --btm-warning: #ffb200;
+      --btm-danger: #ff4d4f;
+      --btm-purple: #c13cff;
+      --btm-shadow: 0 10px 35px rgba(7, 42, 108, 0.12);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, #f7faff 100%);
+      color: var(--btm-text);
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: linear-gradient(180deg, var(--btm-navy) 0%, #0b3d92 100%);
+      color: #fff;
+      padding: 26px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      box-shadow: 8px 0 30px rgba(7, 42, 108, 0.12);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ffffff, #d8ecff);
+      color: var(--btm-navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 8px 20px rgba(255,255,255,0.2);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.1;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: rgba(255,255,255,0.75);
+      font-size: 13px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu a {
+      text-decoration: none;
+      color: rgba(255,255,255,0.92);
+      padding: 13px 14px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.25s ease;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .menu a:hover,
+    .menu a.active {
+      background: rgba(255,255,255,0.14);
+      transform: translateX(2px);
+    }
+
+    .content {
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 30px;
+      color: var(--btm-navy);
+    }
+
+    .topbar p {
+      margin: 5px 0 0;
+      color: var(--btm-muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--btm-navy), var(--btm-blue));
+      color: #fff;
+      box-shadow: var(--btm-shadow);
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--btm-navy);
+      border: 1px solid var(--btm-border);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      background: var(--btm-card);
+      border: 1px solid var(--btm-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--btm-shadow);
+    }
+
+    .kpi-card {
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      right: -40px;
+      top: -40px;
+      background: linear-gradient(135deg, rgba(24,184,255,0.18), rgba(10,77,179,0.06));
+    }
+
+    .kpi-label {
+      font-size: 13px;
+      color: var(--btm-muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--btm-navy);
+      margin-bottom: 6px;
+    }
+
+    .kpi-trend {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .success { color: var(--btm-success); }
+    .warning { color: var(--btm-warning); }
+    .danger { color: var(--btm-danger); }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 18px;
+      margin-bottom: 22px;
+      align-items: stretch;
+    }
+
+    .site-overview {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .site-image {
+      height: 250px;
+      background:
+        linear-gradient(rgba(7,42,108,0.25), rgba(7,42,108,0.12)),
+        url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80")
+        center/cover no-repeat;
+      border-bottom: 4px solid #9bc7ff;
+    }
+
+    .site-body {
+      padding: 22px;
+    }
+
+    .site-title-row {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .site-title-row h3 {
+      margin: 0;
+      color: var(--btm-navy);
+      font-size: 22px;
+    }
+
+    .site-subtitle {
+      margin: 0 0 14px;
+      color: var(--btm-muted);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .site-body p {
+      margin: 0;
+      color: #4a5b76;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .map-card {
+      padding: 14px;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 8px 14px;
+      flex-wrap: wrap;
+    }
+
+    .card-header h3 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--btm-navy);
+    }
+
+    .card-header p {
+      margin: 4px 0 0;
+      color: var(--btm-muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar select,
+    .toolbar input {
+      border: 1px solid var(--btm-border);
+      background: #fff;
+      color: var(--btm-text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      outline: none;
+      font-weight: 600;
+    }
+
+    #map {
+      height: 100vh;
+      width: 100%;
+      min-height: 520px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--btm-border);
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .chart-card {
+      padding: 16px 16px 8px;
+    }
+
+    .chart-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chart-title h4 {
+      margin: 0;
+      color: var(--btm-navy);
+      font-size: 19px;
+    }
+
+    .chart-title span {
+      color: var(--btm-muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .chart-wrap {
+      height: 320px;
+      position: relative;
+    }
+
+    .table-card {
+      padding: 16px;
+      margin-bottom: 22px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--btm-border);
+      border-radius: 16px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #edf2fb;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f4f8ff;
+      color: var(--btm-navy);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    tr:hover td {
+      background: #f9fbff;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .status.ok {
+      background: rgba(44,198,109,0.12);
+      color: #14994e;
+    }
+
+    .status.alert {
+      background: rgba(255,178,0,0.14);
+      color: #bb7d00;
+    }
+
+    .status.critical {
+      background: rgba(255,77,79,0.12);
+      color: #d63134;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .legend-box {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 0 8px 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fbff;
+      border: 1px solid var(--btm-border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--btm-text);
+    }
+
+    .footer-note {
+      color: var(--btm-muted);
+      font-size: 12px;
+      text-align: right;
+      margin-top: 10px;
+      padding-right: 6px;
+    }
+
+    @media (max-width: 1400px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .topbar h2 {
+        font-size: 24px;
+      }
+
+      #map {
+        min-height: 420px;
+        height: 60vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">BTM</div>
+        <div>
+          <h1>BlueTrust Monitoring</h1>
+          <p>Vue globale des sites</p>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <a href="#" class="active">🏠 Vue globale</a>
+        <a href="#">🗺️ Cartographie</a>
+        <a href="#">📈 KPIs</a>
+        <a href="#">⚠️ Incidents</a>
+        <a href="#">✅ Conformité</a>
+        <a href="#">📄 Rapports</a>
+        <a href="#">⚙️ Paramètres</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div>
+          <h2>Dashboard Multi-sites</h2>
+          <p>
+            Vue de l’ensemble des sites, analyse site par site, cartographie et indicateurs de conformité.
+          </p>
+        </div>
+
+        <div class="actions">
+          <button class="btn secondary">Filtrer par période</button>
+          <button class="btn secondary">Exporter</button>
+          <button class="btn primary">Créer un rapport</button>
+        </div>
+      </div>
+
+      <section class="kpi-grid">
+        <div class="card kpi-card">
+          <div class="kpi-label">Nombre total de sites</div>
+          <div class="kpi-value">24</div>
+          <div class="kpi-trend success">+2 ce mois-ci</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">Temps moyen d’intervention</div>
+          <div class="kpi-value">2h 18</div>
+          <div class="kpi-trend success">-12 % vs période précédente</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">Incidents sur la période</div>
+          <div class="kpi-value">137</div>
+          <div class="kpi-trend warning">+8 % cette semaine</div>
+        </div>
+
+        <div class="card kpi-card">
+          <div class="kpi-label">Taux de conformité global</div>
+          <div class="kpi-value">94,6 %</div>
+          <div class="kpi-trend success">Conforme</div>
+        </div>
+      </section>
+
+      <section class="hero-grid">
+        <div class="card site-overview">
+          <div class="site-image"></div>
+          <div class="site-body">
+            <div class="site-title-row">
+              <h3>HDSN POC</h3>
+              <span style="font-size: 22px;">📍</span>
+            </div>
+            <p class="site-subtitle">HDSN</p>
+            <p>
+              HDSN s’appuie sur la technologie ePredict pour analyser en continu les données
+              électriques, détecter les anomalies en amont et anticiper les risques d’incendie.
+              Cette vue permet une lecture rapide de l’état des sites, du niveau de conformité
+              et des incidents par période et par type.
+            </p>
+          </div>
+        </div>
+
+        <div class="card map-card">
+          <div class="card-header">
+            <div>
+              <h3>Localisation sur la carte</h3>
+              <p>Code couleur BTM défini pour faciliter l’analyse visuelle</p>
+            </div>
+
+            <div class="toolbar">
+              <input type="text" placeholder="Chercher un capteur" />
+              <select>
+                <option>Tous les sites</option>
+                <option>Sites conformes</option>
+                <option>Sites à surveiller</option>
+                <option>Sites critiques</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="legend-box">
+            <div class="legend-item">
+              <span class="dot" style="background: var(--btm-success);"></span>
+              Conforme
+            </div>
+            <div class="legend-item">
+              <span class="dot" style="background: var(--btm-warning);"></span>
+              À surveiller
+            </div>
+            <div class="legend-item">
+              <span class="dot" style="background: var(--btm-danger);"></span>
+              Critique
+            </div>
+            <div class="legend-item">
+              <span class="dot" style="background: var(--btm-purple);"></span>
+              Capteur spécifique
+            </div>
+          </div>
+
+          <div id="map"></div>
+        </div>
+      </section>
+
+      <section class="section-grid">
+        <div class="card chart-card">
+          <div class="chart-title">
+            <h4>KPI conformité</h4>
+            <span>Évolution mensuelle</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="conformityChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">
+            <h4>KPI Temps d'intervention</h4>
+            <span>Histogramme mensuel</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="interventionChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-grid">
+        <div class="card chart-card">
+          <div class="chart-title">
+            <h4>Répartition des incidents par type</h4>
+            <span>Graphique circulaire</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="incidentDonutChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">
+            <h4>Nombre d’incidents sur une période</h4>
+            <span>Histogramme par mois</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="incidentBarChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <section class="card table-card">
+        <div class="card-header" style="padding: 0 0 14px;">
+          <div>
+            <h3>Analyse site par site / KPIs</h3>
+            <p>Temps moyen d’intervention, incidents, conformité et statut</p>
+          </div>
+
+          <div class="toolbar">
+            <select>
+              <option>Tout</option>
+              <option>Nord</option>
+              <option>Sud</option>
+              <option>Est</option>
+              <option>Ouest</option>
+            </select>
+            <select>
+              <option>Données brutes</option>
+              <option>Données agrégées</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Site</th>
+                <th>Région</th>
+                <th>Temps moyen d’intervention</th>
+                <th>Incidents</th>
+                <th>Type dominant</th>
+                <th>Conformité</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>HDSN POC</td>
+                <td>Ouest</td>
+                <td>1h 48</td>
+                <td>12</td>
+                <td>Électrique</td>
+                <td>98 %</td>
+                <td>
+                  <span class="status ok">
+                    <span class="dot" style="background: var(--btm-success);"></span>
+                    Conforme
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>Site Alpha</td>
+                <td>Nord</td>
+                <td>2h 21</td>
+                <td>18</td>
+                <td>Maintenance</td>
+                <td>92 %</td>
+                <td>
+                  <span class="status alert">
+                    <span class="dot" style="background: var(--btm-warning);"></span>
+                    À surveiller
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>Site Beta</td>
+                <td>Sud</td>
+                <td>3h 06</td>
+                <td>26</td>
+                <td>Sécurité</td>
+                <td>84 %</td>
+                <td>
+                  <span class="status critical">
+                    <span class="dot" style="background: var(--btm-danger);"></span>
+                    Critique
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>Site Gamma</td>
+                <td>Centre</td>
+                <td>2h 03</td>
+                <td>9</td>
+                <td>Capteurs</td>
+                <td>96 %</td>
+                <td>
+                  <span class="status ok">
+                    <span class="dot" style="background: var(--btm-success);"></span>
+                    Conforme
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>Site Delta</td>
+                <td>Est</td>
+                <td>2h 37</td>
+                <td>15</td>
+                <td>Réseau</td>
+                <td>90 %</td>
+                <td>
+                  <span class="status alert">
+                    <span class="dot" style="background: var(--btm-warning);"></span>
+                    À surveiller
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="footer-note">
+          Maquette HTML/CSS/JS basée sur la demande initiale, à connecter ensuite aux vraies données BTM.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <script>
+    /* =========================
+       CARTE LEAFLET
+    ========================= */
+    const map = L.map('map', {
+      zoomControl: true
+    }).setView([46.603354, 1.888334], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const siteData = [
+      {
+        name: 'HDSN POC',
+        region: 'Ouest',
+        coords: [47.2184, -1.5536],
+        color: '#c13cff',
+        status: 'Capteur spécifique',
+        incidents: 12,
+        compliance: '98 %'
+      },
+      {
+        name: 'Site Alpha',
+        region: 'Nord',
+        coords: [50.6292, 3.0573],
+        color: '#ffb200',
+        status: 'À surveiller',
+        incidents: 18,
+        compliance: '92 %'
+      },
+      {
+        name: 'Site Beta',
+        region: 'Sud',
+        coords: [43.2965, 5.3698],
+        color: '#ff4d4f',
+        status: 'Critique',
+        incidents: 26,
+        compliance: '84 %'
+      },
+      {
+        name: 'Site Gamma',
+        region: 'Centre',
+        coords: [44.8378, -0.5792],
+        color: '#2cc66d',
+        status: 'Conforme',
+        incidents: 9,
+        compliance: '96 %'
+      },
+      {
+        name: 'Site Delta',
+        region: 'Est',
+        coords: [45.7640, 4.8357],
+        color: '#ffb200',
+        status: 'À surveiller',
+        incidents: 15,
+        compliance: '90 %'
+      },
+      {
+        name: 'Site Epsilon',
+        region: 'Nord-Est',
+        coords: [48.5734, 7.7521],
+        color: '#ffb200',
+        status: 'À surveiller',
+        incidents: 11,
+        compliance: '91 %'
+      }
+    ];
+
+    function createColorMarker(color) {
+      return L.divIcon({
+        className: '',
+        html: `
+          <div style="
+            width: 18px;
+            height: 18px;
+            background: ${color};
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 6px rgba(255,255,255,0.18), 0 6px 18px rgba(0,0,0,0.25);
+          "></div>
+        `,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9]
+      });
+    }
+
+    siteData.forEach(site => {
+      L.marker(site.coords, { icon: createColorMarker(site.color) })
+        .addTo(map)
+        .bindPopup(`
+          <div style="min-width: 180px; font-family: Arial, sans-serif;">
+            <strong style="color:#072a6c;">${site.name}</strong><br>
+            Région : ${site.region}<br>
+            Statut : ${site.status}<br>
+            Incidents : ${site.incidents}<br>
+            Conformité : ${site.compliance}
+          </div>
+        `);
+    });
+
+    /* =========================
+       CHART.JS - CONFIG GLOBALE
+    ========================= */
+    Chart.defaults.font.family = '"Segoe UI", Arial, sans-serif';
+    Chart.defaults.color = '#5f6f88';
+
+    const gridColor = 'rgba(7, 42, 108, 0.08)';
+    const btmBlue = '#0a4db3';
+    const btmLightBlue = '#3e86ff';
+    const btmCyan = '#18b8ff';
+    const btmGreen = '#2cc66d';
+    const btmYellow = '#ffb200';
+    const btmRed = '#ff4d4f';
+    const btmPurple = '#c13cff';
+
+    /* =========================
+       KPI CONFORMITÉ
+    ========================= */
+    new Chart(document.getElementById('conformityChart'), {
+      type: 'line',
+      data: {
+        labels: ['Avr 2024', 'Mai 2024', 'Juin 2024', 'Juil 2024', 'Août 2024', 'Sept 2024', 'Oct 2024', 'Nov 2024', 'Déc 2024', 'Jan 2025', 'Fév 2025', 'Mars 2025'],
+        datasets: [
+          {
+            label: 'Conformité (%)',
+            data: [96, 98, 92, 88, 93, 99, 95, 91, 97, 94, 99, 96],
+            fill: true,
+            borderColor: btmLightBlue,
+            backgroundColor: 'rgba(62,134,255,0.25)',
+            pointBackgroundColor: btmBlue,
+            pointRadius: 4,
+            tension: 0.35
+          },
+          {
+            label: 'Seuil d’alerte',
+            data: [85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85],
+            borderColor: btmYellow,
+            borderDash: [7, 7],
+            pointRadius: 0,
+            fill: false,
+            tension: 0
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              boxWidth: 16
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            min: 70,
+            max: 100,
+            grid: { color: gridColor },
+            ticks: { callback: value => value + '%' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    /* =========================
+       KPI TEMPS INTERVENTION
+    ========================= */
+    new Chart(document.getElementById('interventionChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mars'],
+        datasets: [
+          {
+            label: "Temps moyen d'intervention (h)",
+            data: [2.4, 1.9, 2.8, 3.1, 2.2, 2.0, 2.5, 2.7, 2.1, 1.8, 2.3, 1.9],
+            backgroundColor: [
+              '#3e86ff', '#3e86ff', '#18b8ff', '#0a4db3',
+              '#3e86ff', '#18b8ff', '#0a4db3', '#3e86ff',
+              '#18b8ff', '#3e86ff', '#0a4db3', '#18b8ff'
+            ],
+            borderRadius: 10
+          },
+          {
+            type: 'line',
+            label: 'Limite contractuelle',
+            data: [3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5, 3.5],
+            borderColor: btmRed,
+            borderDash: [8, 6],
+            pointRadius: 0,
+            tension: 0
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              boxWidth: 16
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: 4,
+            grid: { color: gridColor },
+            title: {
+              display: true,
+              text: 'Temps en heures'
+            }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    /* =========================
+       INCIDENTS PAR TYPE - DONUT
+    ========================= */
+    new Chart(document.getElementById('incidentDonutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Électrique', 'Capteurs', 'Maintenance', 'Sécurité', 'Réseau'],
+        datasets: [{
+          data: [38, 24, 28, 30, 17],
+          backgroundColor: [btmBlue, btmCyan, btmYellow, btmRed, btmPurple],
+          borderColor: '#ffffff',
+          borderWidth: 3,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+
+    /* =========================
+       NOMBRE D’INCIDENTS - HISTOGRAMME
+    ========================= */
+    new Chart(document.getElementById('incidentBarChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc', 'Jan', 'Fév', 'Mars'],
+        datasets: [{
+          label: 'Nombre d’incidents',
+          data: [8, 11, 13, 15, 10, 9, 14, 16, 12, 9, 11, 9],
+          backgroundColor: [
+            '#18b8ff', '#3e86ff', '#0a4db3', '#ffb200',
+            '#18b8ff', '#3e86ff', '#0a4db3', '#ff4d4f',
+            '#18b8ff', '#3e86ff', '#0a4db3', '#2cc66d'
+          ],
+          borderRadius: 10
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: gridColor }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
