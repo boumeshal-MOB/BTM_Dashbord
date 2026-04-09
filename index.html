@@ -618,7 +618,7 @@
                 <option>Tous les sites</option>
                 <option>Sites conformes</option>
                 <option>Sites à surveiller</option>
-                <option>Sites critiques</option>
+                <option>Sites en cours d'intégration</option>
               </select>
             </div>
           </div>
@@ -638,7 +638,7 @@
             </div>
             <div class="legend-item">
               <span class="dot" style="background: var(--btm-purple);"></span>
-              Site spécifique
+              Site en cours d'intégration
             </div>
           </div>
 
@@ -727,7 +727,7 @@
             </thead>
             <tbody>
               <tr>
-                <td>HDSN POC</td>
+                <td>HDSN</td>
                 <td>Ouest</td>
                 <td>1h 48</td>
                 <td>12</td>
@@ -823,11 +823,11 @@
 
     const siteData = [
       {
-        name: 'HDSN POC',
+        name: 'HDSN',
         region: 'Ouest',
         coords: [47.2184, -1.5536],
         color: '#c13cff',
-        status: 'Capteur spécifique',
+        status: 'En cours d'intégration',
         incidents: 12,
         compliance: '98 %'
       },
@@ -990,9 +990,9 @@
             label: "Temps moyen d'intervention (h)",
             data: [2.4, 1.9, 2.8, 3.1, 2.2, 2.0, 2.5, 2.7, 2.1, 1.8, 2.3, 1.9],
             backgroundColor: [
-              '#3e86ff', '#3e86ff', '#18b8ff', '#0a4db3',
-              '#3e86ff', '#18b8ff', '#0a4db3', '#3e86ff',
-              '#18b8ff', '#3e86ff', '#0a4db3', '#18b8ff'
+              '#DCDCDC', '#DCDCDC', '#DCDCDC', '#DCDCDC',
+              '#DCDCDC', '#DCDCDC', '#DCDCDC', '#DCDCDC',
+              '#DCDCDC', '#DCDCDC', '#DCDCDC', '#DCDCDC'
             ],
             borderRadius: 10
           },
@@ -1039,7 +1039,7 @@
     new Chart(document.getElementById('incidentDonutChart'), {
       type: 'doughnut',
       data: {
-        labels: ['Électrique', 'Capteurs', 'Maintenance', 'Sécurité', 'Réseau'],
+        labels: ['Batteries', 'TGBT', 'onduleurs', 'contrôle commande', 'ventilation'],
         datasets: [{
           data: [38, 24, 28, 30, 17],
           backgroundColor: [btmBlue, btmCyan, btmYellow, btmRed, btmPurple],
@@ -1070,9 +1070,9 @@
           label: 'Nombre d’incidents',
           data: [8, 11, 13, 15, 10, 9, 14, 16, 12, 9, 11, 9],
           backgroundColor: [
-            '#18b8ff', '#3e86ff', '#0a4db3', '#ffb200',
-            '#18b8ff', '#3e86ff', '#0a4db3', '#ff4d4f',
-            '#18b8ff', '#3e86ff', '#0a4db3', '#2cc66d'
+            '#18b8ff', '#18b8ff', '#18b8ff', '#18b8ff',
+            '#18b8ff', '#18b8ff', '#18b8ff', '#18b8ff',
+            '#18b8ff', '#18b8ff', '#18b8ff', '#18b8ff'
           ],
           borderRadius: 10
         }]
