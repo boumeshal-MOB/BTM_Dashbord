@@ -5308,9 +5308,23 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     initializeValidationDataPanel();
     syncControlFilterAvailability();
     setMapInteractionMode(false);
-    render();
-    updateFilterUx();
-    updateFloatingDockVisibility();
+    function initializeDashboardView() {
+      render();
+      updateFilterUx();
+      updateFloatingDockVisibility();
+      requestAnimationFrame(() => {
+        Object.values(charts).forEach(chart => chart.resize());
+        map.invalidateSize({ animate:false });
+      });
+    }
+    function scheduleInitialDashboardRender() {
+      requestAnimationFrame(() => requestAnimationFrame(initializeDashboardView));
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', scheduleInitialDashboardRender, { once:true });
+    } else {
+      scheduleInitialDashboardRender();
+    }
   </script>
 </body>
 </html>
